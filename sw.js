@@ -1,4 +1,4 @@
-const C='csl-v2';
+const C='csl-v3';
 const FILES=['./','./index.html','./manifest.json','./icon.svg'];
 const CDN='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js';
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(async c=>{await c.addAll(FILES);try{await c.add(new Request(CDN,{mode:'cors'}));}catch(_){}}));self.skipWaiting();});
