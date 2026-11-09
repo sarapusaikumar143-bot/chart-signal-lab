@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="te">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1220">
+<title>Chart Signal Lab</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#0f1220;--card:#171b2e;--card2:#1e2340;--line:#2a3052;--txt:#e9ecf7;--mut:#99a1c2;--up:#22c06b;--down:#ef5b45;--warn:#ffb020;--acc:#5b8cff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:"Noto Sans Telugu","Mandali",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px 110px}
+header{position:sticky;top:0;z-index:5;background:rgba(15,18,32,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hrow{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 14px 6px}
+.logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#5b8cff,#22c06b);display:grid;place-items:center;font-weight:800}
+h1{font-size:17px;margin:0;font-weight:700}
+.sub{font-size:12px;color:var(--mut)}
+.disc{max-width:560px;margin:0 auto;padding:0 14px 8px;font-size:12px;color:#ffd58a}
+.disc b{color:#ffcf6e}
+.tabs{display:flex;gap:6px;max-width:560px;margin:0 auto;padding:0 14px 8px}
+.tab{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--mut);font:inherit;font-weight:600}
+.tab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:14px}
+.drop{display:block;border:2px dashed #3a4270;border-radius:16px;padding:26px 14px;text-align:center;background:var(--card2);cursor:pointer}
+.drop .big{font-size:34px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:12px;padding:12px 16px;font:inherit;font-weight:700;color:#fff;background:var(--acc);cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
+.tips{font-size:13px;color:var(--mut);margin:10px 0 0;padding-left:18px}
+.sig{display:flex;align-items:center;gap:14px}
+.sigbox{flex:0 0 auto;width:108px;height:108px;border-radius:20px;display:grid;place-items:center;text-align:center;font-weight:800;font-size:22px;line-height:1.1}
+.sig.UP .sigbox{background:rgba(34,192,107,.15);color:var(--up);border:2px solid var(--up)}
+.sig.DOWN .sigbox{background:rgba(239,91,69,.15);color:var(--down);border:2px solid var(--down)}
+.sig.NT .sigbox{background:rgba(153,161,194,.12);color:#c7cce3;border:2px solid #5a6390}
+.arrow{font-size:34px;display:block}
+.meter{height:10px;border-radius:6px;background:#262c4d;overflow:hidden;margin:6px 0 2px}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,#5b8cff,#22c06b)}
+.small{font-size:12px;color:var(--mut)}
+ul.r{margin:8px 0 0;padding-left:18px}
+ul.r li{margin:4px 0}
+.blk li{color:#ffc4b8}
+canvas{width:100%;height:auto;border-radius:12px;display:block;background:#000}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row .btn{flex:1}
+.win{background:var(--up)}.loss{background:var(--down)}.skip{background:#4a5280}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.st{background:var(--card2);border-radius:12px;padding:10px;text-align:center}
+.st b{display:block;font-size:22px}
+.be{border:1px solid #6b5a1e;background:rgba(255,176,32,.09);border-radius:14px;padding:12px;margin-top:12px}
+.be .num{font-size:28px;font-weight:800;color:var(--warn)}
+.alert{border:1px solid #803329;background:rgba(239,91,69,.14);border-radius:14px;padding:12px;margin-top:12px;color:#ffd0c8;font-weight:600}
+.info{border:1px solid var(--line);background:var(--card2);color:var(--mut);font-weight:400}
+.good{border:1px solid #1d6b43;background:rgba(34,192,107,.12);color:#c9f5dc}
+.hist{list-style:none;margin:10px 0 0;padding:0}
+.hist li{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.pill{padding:2px 8px;border-radius:20px;font-size:12px;font-weight:700}
+.pill.UP{background:rgba(34,192,107,.2);color:var(--up)}.pill.DOWN{background:rgba(239,91,69,.2);color:var(--down)}.pill.NT{background:#2c3359;color:#c7cce3}
+.res{margin-left:auto;display:flex;gap:4px}
+.res button{border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:8px;padding:4px 7px;font:inherit;font-size:12px}
+.res button.on.W{background:var(--up);color:#fff;border-color:var(--up)}
+.res button.on.L{background:var(--down);color:#fff;border-color:var(--down)}
+.res button.on.S{background:#4a5280;color:#fff;border-color:#4a5280}
+input[type=number]{width:80px;background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px;font:inherit}
+.hide{display:none!important}
+.spin{width:28px;height:28px;border:3px solid #33406e;border-top-color:var(--acc);border-radius:50%;animation:s 1s linear infinite;margin:10px auto}
+@keyframes s{to{transform:rotate(360deg)}}
+footer{max-width:560px;margin:20px auto 0;padding:0 14px;font-size:12px;color:var(--mut)}
+.marked{font-weight:700;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow"><div class="logo">📈</div><div><h1>Chart Signal Lab</h1><div class="sub">స్క్రీన్‌షాట్ చార్ట్ విశ్లేషణ + ఫలితాల ట్రాకర్</div></div></div>
+  <div class="disc">⚠️ <b>హెచ్చరిక:</b> స్క్రీన్‌షాట్ విశ్లేషణ 1-నిమిషం OTC trades కు నమ్మదగిన అంచనా కాదు. ఫలితాలకు ఎలాంటి గ్యారంటీ లేదు. కోల్పోయినా పర్వాలేని డబ్బు మాత్రమే.</div>
+  <div class="tabs"><button class="tab on" data-t="an">🔍 విశ్లేషణ</button><button class="tab" data-t="tr">📊 ట్రాకర్</button></div>
+</header>
+<div class="wrap">
+<section id="an">
+  <div class="card">
+    <label class="drop" id="drop" for="file">
+      <div class="big">🖼️</div>
+      <div style="font-weight:700;margin-top:4px">చార్ట్ స్క్రీన్‌షాట్ అప్‌లోడ్ చేయండి</div>
+      <div class="small">ఇక్కడ నొక్కండి (Gallery నుంచి ఎంచుకోండి)</div>
+    </label>
+    <input type="file" id="file" accept="image/*" class="hide">
+    <ul class="tips">
+      <li>Candles chart మాత్రమే (Line/Bars కాదు), dark theme.</li>
+      <li>కనీసం 20–40 candles కనిపించాలి; ఎక్కువ zoom వద్దు.</li>
+      <li>Indicators (Bollinger, MA) off చేస్తే candle detection మరింత ఖచ్చితంగా ఉంటుంది.</li>
+    </ul>
+  </div>
+  <div id="busy" class="card hide"><div class="spin"></div><div class="small" style="text-align:center">విశ్లేషిస్తోంది…</div></div>
+  <div id="out" class="hide">
+    <div class="card">
+      <div class="sig" id="sig"><div class="sigbox" id="sigbox"></div>
+        <div style="flex:1">
+          <div class="small">Confidence (signals ఎంత అంగీకరిస్తున్నాయి)</div>
+          <div class="meter"><i id="meter"></i></div>
+          <div style="font-weight:700" id="conf"></div>
+          <div class="small" id="meta"></div>
+          <div class="small" style="color:#ffd58a">Confidence ≠ గెలుపు అవకాశం.</div>
+        </div>
+      </div>
+      <div id="blkwrap"><div style="font-weight:700;margin-top:12px">⛔ ఎందుకు No Trade:</div><ul class="r blk" id="blocks"></ul></div>
+      <div style="font-weight:700;margin-top:12px">🧠 కారణాలు:</div>
+      <ul class="r" id="reasons"></ul>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b>గుర్తించిన candles</b>
+        <label class="small"><input type="checkbox" id="ovt" checked> Overlay</label></div>
+      <div class="small" style="margin:4px 0 8px">నీలి/గులాబీ బాక్సులు = గుర్తించిన green/red candle bodies, పసుపు గీత = wicks. తప్పుగా కనిపిస్తే ఈ signal ని నమ్మవద్దు.</div>
+      <canvas id="cv"></canvas>
+    </div>
+    <div class="card">
+      <b>ఈ signal ఫలితం గుర్తించండి</b>
+      <div class="small">Trade పూర్తయ్యాక నొక్కండి — మీ నిజమైన win rate ట్రాకర్‌లో వస్తుంది.</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn win" data-r="W">✅ Win</button><button class="btn loss" data-r="L">❌ Loss</button><button class="btn skip" data-r="S">⏭️ Skipped</button>
+      </div>
+      <div class="marked" id="marked"></div>
+    </div>
+  </div>
+</section>
+<section id="tr" class="hide">
+  <div class="card">
+    <div class="stats">
+      <div class="st"><b id="sTot">0</b><span class="small">మొత్తం signals</span></div>
+      <div class="st"><b id="sWL">0/0</b><span class="small">Win / Loss</span></div>
+      <div class="st"><b id="sWR">–</b><span class="small">Win rate</span></div>
+    </div>
+    <div class="be">
+      <div>⚖️ <b>Break-even నియమం</b></div>
+      <div><span class="num" id="beNum">51.8%</span> <span class="small">కంటే ఎక్కువ wins కావాలి</span></div>
+      <div class="small">Payout <input type="number" id="payout" min="10" max="100" value="93">% అయితే, నష్టం లేకుండా ఉండటానికే <b id="beTxt">52%</b> పైగా trades గెలవాలి. Win rate దీనికంటే తక్కువైతే దీర్ఘకాలంలో డబ్బు తగ్గుతుంది.</div>
+    </div>
+    <div id="wrAlert" class="alert hide"></div>
+    <div class="small" id="cloudSt" style="margin-top:10px">☁️ Cloud sync: లోడ్ అవుతోంది…</div>
+    <div id="loginBox" class="hide" style="margin-top:8px">
+      <div class="small">Cloud backup కోసం email తో login అవ్వండి (ఒక్కసారి మాత్రమే). Login లేకపోయినా app ఈ ఫోన్‌లో పనిచేస్తుంది.</div>
+      <div class="row" style="margin-top:6px"><input type="email" id="lgEmail" placeholder="మీ email" style="flex:1;padding:8px;border-radius:8px;border:1px solid #333a5c;background:#161a2e;color:#fff"><button class="btn ghost" id="lgSend" style="padding:6px 10px;font-size:12px">Code పంపు</button></div>
+      <div class="row hide" id="lgCodeRow" style="margin-top:6px"><input inputmode="numeric" id="lgCode" placeholder="Email లో వచ్చిన code" style="flex:1;padding:8px;border-radius:8px;border:1px solid #333a5c;background:#161a2e;color:#fff"><button class="btn ghost" id="lgVerify" style="padding:6px 10px;font-size:12px">Verify</button></div>
+    </div>
+    <div class="small" style="margin-top:10px" id="sBy"></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center"><b>చరిత్ర</b>
+      <span><button class="btn ghost" id="csv" style="padding:6px 10px;font-size:12px">CSV</button> <button class="btn ghost" id="clr" style="padding:6px 10px;font-size:12px">అన్నీ తొలగించు</button></span></div>
+    <ul class="hist" id="hist"></ul>
+    <div class="small" id="empty">ఇంకా signals లేవు.</div>
+  </div>
+</section>
+<footer>Chart విశ్లేషణ పూర్తిగా మీ ఫోన్ బ్రౌజర్‌లోనే జరుగుతుంది — స్క్రీన్‌షాట్‌లు ఎక్కడికీ అప్‌లోడ్ కావు. Trade ఫలితాలు (signal, confidence, Win/Loss) మాత్రమే మీ cloud backup (Supabase) లో సేవ్ అవుతాయి — మీకు తప్ప ఎవరికీ కనిపించవు. ఇది ఆర్థిక సలహా కాదు. Broker తో ఎలాంటి సంబంధం లేదు.</footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js"></script>
+<script>
+/* Chart screenshot analyzer – pure JS, works in browser and Node. */
+(function (root) {
+  let DEBUG = null;
+  function isGreen(r, g, b) { return g > 95 && g - r > 45 && g - b > 20 && r < 140; }
+  function isRed(r, g, b) { return r > 150 && r - g > 55 && r - b > 50; }
+
+  function median(a) { if (!a.length) return 0; const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
+  function ema(arr, n) { const k = 2 / (n + 1); const out = []; let e = arr[0]; for (let i = 0; i < arr.length; i++) { e = i ? arr[i] * k + e * (1 - k) : arr[0]; out.push(e); } return out; }
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  // data: RGBA Uint8ClampedArray, w, h
+  function detect(data, w, h) {
+    const N = w * h;
+    const G = new Uint8Array(N), R = new Uint8Array(N);
+    const darkRow = new Float32Array(h);
+    for (let y = 0; y < h; y++) {
+      let dark = 0;
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4, r = data[i], g = data[i + 1], b = data[i + 2];
+        if (isGreen(r, g, b)) G[y * w + x] = 1; else if (isRed(r, g, b)) R[y * w + x] = 1;
+        if (0.299 * r + 0.587 * g + 0.114 * b < 75) dark++;
+      }
+      darkRow[y] = dark / w;
+    }
+    // 1) chart region: longest band of mostly-dark rows (allow short bright interruptions)
+    let best = [0, h - 1], bestLen = 0, start = -1, bad = 0;
+    const tol = Math.round(h * 0.01);
+    for (let y = 0; y <= h; y++) {
+      const ok = y < h && darkRow[y] > 0.55;
+      if (ok) { if (start < 0) start = y; bad = 0; }
+      else if (start >= 0) {
+        bad++;
+        if (bad > tol || y === h) { const end = y - bad; if (end - start > bestLen) { bestLen = end - start; best = [start, end]; } start = -1; bad = 0; }
+      }
+    }
+    const [y0, y1] = best;
+    // 2) remove long horizontal colored runs (banners, buttons, horizontal lines)
+    const maxRun = Math.max(12, Math.round(w * 0.045));
+    for (const M of [G, R]) {
+      for (let y = 0; y < h; y++) {
+        let x = 0;
+        while (x < w) {
+          if (!M[y * w + x]) { x++; continue; }
+          let e = x; while (e < w && M[y * w + e]) e++;
+          if (e - x > maxRun) for (let k = x; k < e; k++) M[y * w + k] = 0;
+          x = e;
+        }
+      }
+    }
+    const gapMerge = Math.max(2, Math.round(h * 0.003));
+    function columnRuns(M) {
+      const top = new Int32Array(w).fill(-1), bot = new Int32Array(w).fill(-1);
+      for (let x = 0; x < w; x++) {
+        let bs = -1, be = -1, s = -1, last = -10;
+        for (let y = y0; y <= y1; y++) {
+          if (M[y * w + x]) {
+            if (s < 0 || y - last > gapMerge + 1) { if (s >= 0 && last - s > be - bs) { bs = s; be = last; } s = y; }
+            last = y;
+          }
+        }
+        if (s >= 0 && last - s > be - bs) { bs = s; be = last; }
+        if (bs >= 0 && be - bs >= 1) { top[x] = bs; bot[x] = be; }
+      }
+      return { top, bot };
+    }
+    function clusters(M, color) {
+      const { top, bot } = columnRuns(M);
+      const out = []; let cur = null;
+      for (let x = 0; x <= w; x++) {
+        const has = x < w && top[x] >= 0;
+        const overlap = has && cur && top[x] <= cur.lastBot && bot[x] >= cur.lastTop;
+        if (has && (overlap || !cur)) {
+          if (!cur) cur = { x0: x, cols: [], color };
+          cur.cols.push([x, top[x], bot[x]]); cur.lastTop = top[x]; cur.lastBot = bot[x];
+        } else {
+          if (cur) { out.push(cur); cur = null; }
+          if (has) { cur = { x0: x, cols: [[x, top[x], bot[x]]], color, lastTop: top[x], lastBot: bot[x] }; }
+        }
+      }
+      // split clusters joined by thin indicator lines: break between strong and weak columns
+      const segs = [];
+      for (const c of out) {
+        const L = c.cols.map(v => v[2] - v[1] + 1), mx = median(L);
+        let cur2 = null, prevStrong = null;
+        for (let i = 0; i < c.cols.length; i++) {
+          const strong = L[i] >= Math.max(4, 0.4 * mx);
+          if (!cur2 || strong !== prevStrong) { if (cur2) segs.push(cur2); cur2 = { x0: c.cols[i][0], cols: [] }; }
+          cur2.cols.push(c.cols[i]); prevStrong = strong;
+        }
+        if (cur2) segs.push(cur2);
+      }
+      const cands = [];
+      for (const c of segs) {
+        const width = c.cols.length; if (width < 3) continue;
+        const tops = c.cols.map(v => v[1]), bots = c.cols.map(v => v[2]);
+        const bt = median(tops), bb = median(bots);
+        const t2 = Math.max(2, (bb - bt) * 0.12);
+        const rect = c.cols.filter(v => Math.abs(v[1] - bt) <= t2 && Math.abs(v[2] - bb) <= t2).length / width;
+        // body must be near-rectangular
+        if (rect < 0.5) continue;
+        let area = 0; for (const v of c.cols) area += v[2] - v[1] + 1;
+        cands.push({ color, x0: c.x0, x1: c.x0 + width - 1, cx: c.x0 + width / 2, width, bodyTop: bt, bodyBot: bb,
+          high: Math.min(...tops), low: Math.max(...bots), area, rect });
+      }
+      return cands;
+    }
+    let cands = clusters(G, 'g').concat(clusters(R, 'r'));
+    if (DEBUG) DEBUG.raw = cands.map(c=>[c.color,c.x0,c.width,Math.round(c.bodyTop),Math.round(c.bodyBot),c.rect.toFixed(2)]);
+    // 3) width consistency
+    if (cands.length) {
+      const W = median(cands.filter(c => c.bodyBot - c.bodyTop >= 3).map(c => c.width)) || median(cands.map(c => c.width));
+      cands = cands.filter(c => c.width >= W * 0.55 && c.width <= W * 1.7);
+    }
+    // 4) dedupe overlapping (line fragments over a candle of other colour)
+    cands.sort((a, b) => b.area - a.area);
+    const kept = [];
+    for (const c of cands) {
+      if (kept.some(k => Math.min(k.x1, c.x1) - Math.max(k.x0, c.x0) > 0.4 * Math.min(k.width, c.width))) continue;
+      kept.push(c);
+    }
+    kept.sort((a, b) => a.cx - b.cx);
+    if (DEBUG) DEBUG.kept = kept.map(c=>[c.color,c.x0,c.width,Math.round(c.bodyTop),Math.round(c.bodyBot)]);
+    // 5) longest evenly spaced chain
+    let chain = kept;
+    if (kept.length > 3) {
+      const gaps = []; for (let i = 1; i < kept.length; i++) gaps.push(kept[i].cx - kept[i - 1].cx);
+      const S = median(gaps);
+      let bs = 0, be = 0, s = 0;
+      for (let i = 1; i <= kept.length; i++) {
+        if (i === kept.length || kept[i].cx - kept[i - 1].cx > S * 4.5) { if (i - s > be - bs) { bs = s; be = i; } s = i; }
+      }
+      chain = kept.slice(bs, be);
+      // vertical sanity: drop candles far outside the chain's price band (e.g. icons)
+      const mids = chain.map(c => (c.high + c.low) / 2), rng = chain.map(c => c.low - c.high);
+      const mm = median(mids), spread = Math.max(...chain.map(c => c.low)) - Math.min(...chain.map(c => c.high));
+      chain = chain.filter(c => Math.abs((c.high + c.low) / 2 - mm) < spread * 0.75 + median(rng) * 3);
+      // local outliers: candle far away from its neighbours (icons, RSI marks)
+      const mr = median(chain.map(c => c.low - c.high)) || 1;
+      chain = chain.filter((c, i) => {
+        const nb = chain.slice(Math.max(0, i - 3), i).concat(chain.slice(i + 1, i + 4));
+        if (nb.length < 2) return true;
+        const nm = median(nb.map(q => (q.high + q.low) / 2));
+        return Math.abs((c.high + c.low) / 2 - nm) < Math.max(mr * 6, spread * 0.3);
+      });
+    }
+    const candles = chain.map(c => ({
+      x0: c.x0, x1: c.x1, color: c.color,
+      open: c.color === 'g' ? c.bodyBot : c.bodyTop, close: c.color === 'g' ? c.bodyTop : c.bodyBot,
+      high: c.high, low: c.low
+    }));
+    return { candles, region: { y0, y1 } };
+  }
+
+  // Feature computation in pixel space (price = -y)
+  function evaluate(candles) {
+    const reasons = [];
+    const n = candles.length;
+    if (n < 15) {
+      return { signal: 'NO TRADE', strength: 0, score: 0, reasons: [`స్పష్టంగా కేవలం ${n} candles మాత్రమే గుర్తించాను (కనీసం 15 కావాలి). Chart మొత్తం కనిపించేలా, zoom చేయకుండా స్క్రీన్‌షాట్ తీయండి.`], features: {} };
+    }
+    const P = candles.map(c => ({ o: -c.open, c: -c.close, h: -c.high, l: -c.low }));
+    const closes = P.map(p => p.c);
+    const last = P[n - 1], prev = P[n - 2];
+    const atrWin = P.slice(-14);
+    const atr = Math.max(1, atrWin.reduce((s, p) => s + (p.h - p.l), 0) / atrWin.length);
+    const e5 = ema(closes, 5), e13 = ema(closes, 13);
+    const trend = clamp((e5[n - 1] - e13[n - 1]) / atr, -1.5, 1.5) / 1.5;
+    const slope = clamp((e5[n - 1] - e5[n - 4]) / (3 * atr) / 0.5, -1, 1);
+    const longSlope = clamp((e13[n - 1] - e13[n - 6]) / (5 * atr) / 0.35, -1, 1);
+    let momSum = 0; for (const p of P.slice(-5)) momSum += p.c - p.o;
+    const mom = clamp(momSum / (5 * atr) / 0.45, -1, 1);
+    // consecutive colours
+    const col = candles[n - 1].color; let k = 0;
+    for (let i = n - 1; i >= 0 && candles[i].color === col; i--) k++;
+    const dirCol = col === 'g' ? 1 : -1;
+    let consec = 0; if (k >= 2 && k <= 4) consec = dirCol * 0.5 * (k - 1) / 3;
+    const exhausted = k >= 5;
+    // support/resistance
+    const win = P.slice(-25);
+    const hi = Math.max(...win.map(p => p.h)), lo = Math.min(...win.map(p => p.l));
+    const distRes = (hi - last.c) / atr, distSup = (last.c - lo) / atr;
+    const pos = (last.c - lo) / Math.max(1, hi - lo);
+    // wick rejection on last 2 candles
+    let wick = 0; const wickNotes = [];
+    for (const [p, wgt, name] of [[prev, 0.6, 'ముందు candle'], [last, 0.4, 'చివరి candle']]) {
+      const range = Math.max(1, p.h - p.l), up = p.h - Math.max(p.o, p.c), dn = Math.min(p.o, p.c) - p.l;
+      if (up / range > 0.5 && up > dn * 2) { wick -= wgt; wickNotes.push(`${name}కి పొడవైన పై wick — పై స్థాయిలో rejection (sellers)`); }
+      if (dn / range > 0.5 && dn > up * 2) { wick += wgt; wickNotes.push(`${name}కి పొడవైన కింద wick — కింద స్థాయిలో rejection (buyers)`); }
+    }
+    const score = 0.25 * trend + 0.2 * slope + 0.15 * longSlope + 0.2 * mom + 0.1 * consec / 0.5 + 0.1 * wick;
+    const dir = score > 0 ? 1 : -1;
+    const fmt = v => (v >= 0 ? '+' : '') + v.toFixed(2);
+    reasons.push(trend > 0.15 ? `EMA5 > EMA13 (${fmt(trend)}) — స్వల్పకాల ట్రెండ్ పైకి` : trend < -0.15 ? `EMA5 < EMA13 (${fmt(trend)}) — స్వల్పకాల ట్రెండ్ కిందికి` : `EMA5, EMA13 దగ్గరగా ఉన్నాయి (${fmt(trend)}) — స్పష్టమైన ట్రెండ్ లేదు`);
+    reasons.push(`చిన్న slope ${fmt(slope)}, పెద్ద slope ${fmt(longSlope)}` + (Math.sign(slope) !== Math.sign(longSlope) ? ' — రెండూ వేర్వేరు దిశల్లో ఉన్నాయి' : ' — రెండూ ఒకే దిశలో'));
+    reasons.push(`చివరి 5 candles momentum ${fmt(mom)}` + (Math.abs(mom) < 0.25 ? ' — బలహీనం' : mom > 0 ? ' — buyers ఆధిపత్యం' : ' — sellers ఆధిపత్యం'));
+    reasons.push(`వరుసగా ${k} ${col === 'g' ? 'green' : 'red'} candles` + (exhausted ? ' — చాలా ఎక్కువ, reversal/pullback ప్రమాదం' : ''));
+    reasons.push(`Range లో స్థానం ${(pos * 100).toFixed(0)}% — resistance (swing high) కి ${distRes.toFixed(1)} ATR, support (swing low) కి ${distSup.toFixed(1)} ATR దూరం`);
+    for (const wn of wickNotes) reasons.push(wn);
+
+    const blocks = [];
+    if (Math.abs(score) < 0.45) blocks.push(`మొత్తం score ${fmt(score)} — ±0.45 threshold దాటలేదు`);
+    if (!(Math.sign(trend) === dir && Math.sign(slope) === dir && Math.sign(mom) === dir)) blocks.push('Trend, slope, momentum ఒకే దిశలో లేవు');
+    if (dir > 0 && distRes < 0.6) blocks.push('ధర resistance కి చాలా దగ్గర — Up ప్రమాదకరం');
+    if (dir < 0 && distSup < 0.6) blocks.push('ధర support కి చాలా దగ్గర — Down ప్రమాదకరం');
+    if (exhausted && dirCol === dir) blocks.push('ఒకే రంగు candles ఎక్కువ — trend అలసిపోయి ఉండొచ్చు');
+    if (k >= 2 && dirCol !== dir) blocks.push(`చివరి ${k} candles signal దిశకు వ్యతిరేక రంగులో ఉన్నాయి — pullback జరుగుతోంది`);
+    if (wick * dir < -0.3) blocks.push('Wick rejection signal దిశకు వ్యతిరేకంగా ఉంది');
+    if (Math.abs(last.c - last.o) / atr < 0.1 && Math.abs(prev.c - prev.o) / atr < 0.1) blocks.push('చివరి candles doji లా ఉన్నాయి — అనిశ్చితి');
+
+    const signal = blocks.length ? 'NO TRADE' : (dir > 0 ? 'UP' : 'DOWN');
+    const strength = Math.round(clamp(Math.abs(score), 0, 1) * 100);
+    return { signal, strength, score, reasons, blocks, features: { n, atr, trend, slope, longSlope, mom, consec: k, color: col, pos, distRes, distSup, wick } };
+  }
+
+  function analyze(data, w, h) {
+    const d = detect(data, w, h);
+    const ev = evaluate(d.candles);
+    return Object.assign({ candles: d.candles, region: d.region }, ev);
+  }
+  const api = { analyze, detect, evaluate, setDebug: d => { DEBUG = d; } };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.ChartAnalyzer = api;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const KEY='csl_history_v1', PKEY='csl_payout';
+let hist=[]; try{hist=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){hist=[]}
+let current=null, lastImg=null, lastRes=null, lastScale=1;
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(hist)); if(window.CloudSync) CloudSync.flush();};
+const touch=h=>{h.dirty=1;};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));$('an').classList.toggle('hide',b.dataset.t!=='an');$('tr').classList.toggle('hide',b.dataset.t!=='tr');if(b.dataset.t==='tr')renderTracker();});
+$('file').onchange=e=>{const f=e.target.files[0]; if(f) load(f); e.target.value='';};
+window.addEventListener('paste',e=>{const it=[...(e.clipboardData||{}).items||[]].find(i=>i.type.startsWith('image/')); if(it) load(it.getAsFile());});
+function load(file){
+  $('out').classList.add('hide');$('busy').classList.remove('hide');
+  const url=URL.createObjectURL(file); const img=new Image();
+  img.onload=()=>setTimeout(()=>{try{process(img)}catch(err){alert('విశ్లేషణ విఫలమైంది: '+err.message)} finally{$('busy').classList.add('hide');URL.revokeObjectURL(url)}},30);
+  img.onerror=()=>{$('busy').classList.add('hide');alert('Image తెరవలేకపోయాను');};
+  img.src=url;
+}
+function process(img){
+  const W=Math.min(1080,img.naturalWidth), s=W/img.naturalWidth, H=Math.round(img.naturalHeight*s);
+  const c=document.createElement('canvas'); c.width=W;c.height=H; const x=c.getContext('2d',{willReadFrequently:true});
+  x.drawImage(img,0,0,W,H); const data=x.getImageData(0,0,W,H).data;
+  const r=ChartAnalyzer.analyze(data,W,H);
+  lastImg=c; lastRes=r; lastScale=s;
+  const sig=r.signal==='NO TRADE'?'NT':r.signal;
+  current={id:Date.now(),ts:new Date().toISOString(),signal:sig,conf:r.strength,n:r.candles.length,result:null};
+  current.payout=payout(); touch(current); hist.unshift(current); save();
+  render(r,sig);
+}
+function render(r,sig){
+  $('sig').className='sig '+sig;
+  $('sigbox').innerHTML=sig==='UP'?'<div><span class="arrow">▲</span>UP</div>':sig==='DOWN'?'<div><span class="arrow">▼</span>DOWN</div>':'<div><span class="arrow">⏸</span>NO<br>TRADE</div>';
+  $('meter').style.width=r.strength+'%';
+  const lean=r.score>0?'పైకి (Up)':'కిందికి (Down)';
+  $('conf').textContent=sig==='NT'?`${r.strength}/100 — స్వల్ప వైపు: ${lean}, కానీ సరిపోదు`:`${r.strength}/100`;
+  $('meta').textContent=`${r.candles.length} candles గుర్తించాను · చివరి candle ఇంకా పూర్తికాకపోవచ్చు`;
+  $('reasons').innerHTML=r.reasons.map(t=>`<li>${esc(t)}</li>`).join('');
+  const bl=r.blocks||[]; $('blkwrap').classList.toggle('hide',!bl.length); $('blocks').innerHTML=bl.map(t=>`<li>${esc(t)}</li>`).join('');
+  $('marked').textContent=''; draw(); $('out').classList.remove('hide');
+  $('out').scrollIntoView({behavior:'smooth'});
+}
+function draw(){
+  if(!lastImg) return; const r=lastRes, cv=$('cv');
+  // crop to chart area around candles for visibility
+  let y0=r.region.y0,y1=r.region.y1;
+  if(r.candles.length){const hs=r.candles.map(c=>c.high),ls=r.candles.map(c=>c.low);const pad=(Math.max(...ls)-Math.min(...hs))*0.25+20;y0=Math.max(0,Math.min(...hs)-pad);y1=Math.min(lastImg.height,Math.max(...ls)+pad);}
+  const w=lastImg.width,h=Math.round(y1-y0); cv.width=w; cv.height=h; const x=cv.getContext('2d');
+  x.drawImage(lastImg,0,y0,w,h,0,0,w,h);
+  if(!$('ovt').checked) return;
+  x.fillStyle='rgba(0,0,0,.35)';x.fillRect(0,0,w,h);
+  const lw=Math.max(1.5,w/500);
+  r.candles.forEach((c,i)=>{const cx=(c.x0+c.x1)/2; x.strokeStyle='#ffe14d';x.lineWidth=lw;x.beginPath();x.moveTo(cx,c.high-y0);x.lineTo(cx,c.low-y0);x.stroke();
+    const t=Math.min(c.open,c.close)-y0,b=Math.max(c.open,c.close)-y0; x.strokeStyle=c.color==='g'?'#00f0ff':'#ff3df2';x.lineWidth=lw*1.4;x.strokeRect(c.x0-1,t,c.x1-c.x0+2,Math.max(2,b-t));
+    if(i===r.candles.length-1){x.fillStyle='#fff';x.font=`bold ${Math.round(w/40)}px sans-serif`;x.fillText('చివరి',c.x0-10,c.high-y0-8);} });
+}
+$('ovt').onchange=draw;
+document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{if(!current)return; current.result=b.dataset.r; touch(current); save();
+  $('marked').textContent={W:'✅ Win గా సేవ్ చేశాను',L:'❌ Loss గా సేవ్ చేశాను',S:'⏭️ Skipped గా సేవ్ చేశాను'}[b.dataset.r]; });
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function payout(){const p=parseFloat($('payout').value);return isFinite(p)&&p>0?p:93}
+$('payout').value=localStorage.getItem(PKEY)||93;
+$('payout').oninput=()=>{localStorage.setItem(PKEY,$('payout').value);renderTracker();};
+function renderTracker(){
+  const W=hist.filter(h=>h.result==='W').length,L=hist.filter(h=>h.result==='L').length;
+  const be=100/(100+payout())*100;
+  $('sTot').textContent=hist.length;$('sWL').textContent=`${W}/${L}`;
+  const wr=W+L?W/(W+L)*100:null; $('sWR').textContent=wr==null?'–':wr.toFixed(1)+'%';
+  $('beNum').textContent=be.toFixed(1)+'%'; $('beTxt').textContent=be.toFixed(1)+'%';
+  const a=$('wrAlert'); a.classList.remove('good','info');
+  if(W+L>=20 && wr<be){a.classList.remove('hide');a.innerHTML=`🚨 ${W+L} trades తర్వాత మీ win rate ${wr.toFixed(1)}% — break-even ${be.toFixed(1)}% కంటే తక్కువ. ఈ signals తో డబ్బు పోతోంది. Real money trades ఆపండి.`;}
+  else if(W+L>=20){a.classList.remove('hide');a.classList.add('good');a.innerHTML=`${W+L} trades లో win rate ${wr.toFixed(1)}% (break-even ${be.toFixed(1)}%). ఇది ఇంకా అదృష్టం కావచ్చు — 100+ trades తర్వాతే నమ్మదగిన అంచనా.`;}
+  else if(W+L>0){a.classList.remove('hide');a.classList.add('info');a.innerHTML=`ఇంకా ${W+L} trades మాత్రమే — కనీసం 20 trades వరకు win rate కి అర్థం లేదు.`;}
+  else a.classList.add('hide');
+  const by=k=>{const w=hist.filter(h=>h.signal===k&&h.result==='W').length,l=hist.filter(h=>h.signal===k&&h.result==='L').length;return `${k==='NT'?'No Trade':k}: ${w}W/${l}L`};
+  $('sBy').textContent='Signal వారీగా — '+['UP','DOWN','NT'].map(by).join(' · ');
+  $('empty').classList.toggle('hide',hist.length>0);
+  $('hist').innerHTML=hist.slice(0,200).map(h=>{const d=new Date(h.ts);return `<li><span class="pill ${h.signal}">${h.signal==='NT'?'No Trade':h.signal}</span><span>${d.toLocaleDateString('te-IN',{day:'numeric',month:'short'})} ${d.toLocaleTimeString('te-IN',{hour:'2-digit',minute:'2-digit'})}<br><span class="small">conf ${h.conf} · ${h.n} candles</span></span><span class="res">${['W','L','S'].map(r=>`<button data-id="${h.id}" data-v="${r}" class="${r}${h.result===r?' on':''}">${{W:'Win',L:'Loss',S:'Skip'}[r]}</button>`).join('')}<button data-del="${h.id}">🗑</button></span></li>`}).join('');
+}
+$('hist').onclick=e=>{const b=e.target.closest('button');if(!b)return; if(b.dataset.del){CloudSync.markDeleted(b.dataset.del);hist=hist.filter(h=>h.id!=b.dataset.del);}else{const h=hist.find(h=>h.id==b.dataset.id); if(h){h.result=h.result===b.dataset.v?null:b.dataset.v;touch(h);}} save(); renderTracker();};
+$('clr').onclick=()=>{if(confirm('మొత్తం చరిత్ర తొలగించాలా? (Cloud backup నుండి కూడా)')){hist.forEach(h=>CloudSync.markDeleted(h.id));hist=[];save();renderTracker();}};
+$('csv').onclick=()=>{const rows=[['time','signal','confidence','candles','result']].concat(hist.map(h=>[h.ts,h.signal,h.conf,h.n,h.result||'']));const blob=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='signals.csv';a.click();};
+
+// ---------- Cloud sync (Supabase). localStorage stays the offline source; cloud is backup + multi-device. ----------
+const SB_URL='https://ndhdixyviqzlbetqsijj.supabase.co', SB_KEY='sb_publishable_Coqu4hOF2EJ8CEioGesJwg_JcMM25Hn'; // publishable key only (safe in browser; RLS protects data)
+const DKEY='csl_deleted_v1';
+const toSig={UP:'UP',DOWN:'DOWN',NT:'NO_TRADE'}, fromSig={UP:'UP',DOWN:'DOWN',NO_TRADE:'NT'};
+const toRes={W:'WIN',L:'LOSS',S:'SKIPPED'}, fromRes={WIN:'W',LOSS:'L',SKIPPED:'S'};
+const CloudSync=window.CloudSync=(function(){
+  let sb=null, user=null, busy=false, again=false, msg='';
+  let dels=[]; try{dels=JSON.parse(localStorage.getItem(DKEY)||'[]')}catch(e){dels=[]}
+  const saveDels=()=>localStorage.setItem(DKEY,JSON.stringify(dels));
+  const pending=()=>hist.filter(h=>h.dirty).length+dels.length;
+  function status(t){ if(t!=null) msg=t; const p=pending(); const el=$('cloudSt'); if(el) el.textContent='☁️ Cloud sync: '+msg+(p?` · ${p} records sync కావాలి`:''); }
+  function markDeleted(id){ id=String(id); if(!dels.includes(id)) dels.push(id); saveDels(); }
+  async function flush(){
+    if(!sb||!user){status();return;} if(!navigator.onLine){status('offline — ఫోన్‌లో సేవ్ అయింది, online అయ్యాక sync అవుతుంది');return;}
+    if(busy){again=true;return;} busy=true;
+    try{
+      if(dels.length){ const ids=dels.slice(); const {error}=await sb.from('trades').delete().eq('user_id',user.id).in('client_id',ids); if(error) throw error; dels=dels.filter(d=>!ids.includes(d)); saveDels(); }
+      const dirty=hist.filter(h=>h.dirty);
+      if(dirty.length){
+        const rows=dirty.map(h=>({user_id:user.id,client_id:String(h.id),created_at:h.ts,signal:toSig[h.signal]||'NO_TRADE',confidence:Math.round(h.conf)||0,candles:h.n|0,result:h.result?toRes[h.result]:null,payout:h.payout||payout(),pair:h.pair||null,notes:h.notes||null}));
+        const {error}=await sb.from('trades').upsert(rows,{onConflict:'user_id,client_id'}); if(error) throw error;
+        dirty.forEach(h=>{h.dirty=0;h.synced=1;}); localStorage.setItem(KEY,JSON.stringify(hist));
+      }
+      status('✅ sync అయింది');
+    }catch(e){ status('⚠️ sync విఫలం ('+(e.message||e)+') — మళ్ళీ ప్రయత్నిస్తాను'); }
+    finally{ busy=false; if(again){again=false;setTimeout(flush,500);} }
+  }
+  async function pull(){
+    const {data,error}=await sb.from('trades').select('client_id,id,created_at,signal,confidence,candles,result,payout,pair,notes').order('created_at',{ascending:false}).limit(2000);
+    if(error) throw error;
+    const byId=new Map(hist.map(h=>[String(h.id),h]));
+    for(const r of data){
+      const cid=r.client_id||r.id; if(dels.includes(String(cid))) continue;
+      const loc=byId.get(String(cid));
+      const rec={id:isNaN(+cid)?cid:+cid,ts:r.created_at,signal:fromSig[r.signal]||'NT',conf:r.confidence||0,n:r.candles||0,result:r.result?fromRes[r.result]:null,payout:r.payout,pair:r.pair,notes:r.notes,synced:1,dirty:0};
+      if(!loc){ hist.push(rec); } else if(!loc.dirty){ Object.assign(loc,rec); }
+    }
+    // local rows that were synced before but are gone on server were deleted on another device
+    const remote=new Set(data.map(r=>String(r.client_id||r.id)));
+    if(data.length<2000) hist=hist.filter(h=>!(h.synced&&!h.dirty&&!remote.has(String(h.id))));
+    hist.sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+    localStorage.setItem(KEY,JSON.stringify(hist)); renderTracker();
+  }
+  async function onUser(u){ user=u; $('loginBox').classList.add('hide'); status('sync అవుతోంది…'); try{ await flush(); await pull(); status(); await flush(); }catch(e){ status('⚠️ cloud నుండి లోడ్ విఫలం ('+(e.message||e)+')'); } }
+  function showLogin(t){ status(t); $('loginBox').classList.remove('hide'); }
+  async function init(){
+    if(!window.supabase||!window.supabase.createClient){ status('offline/లోడ్ కాలేదు — ఈ ఫోన్‌లో మాత్రమే సేవ్ అవుతోంది'); return; }
+    sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    sb.auth.onAuthStateChange((ev,s)=>{ if(s&&s.user&&(!user||user.id!==s.user.id)) onUser(s.user); });
+    const {data:{session}}=await sb.auth.getSession();
+    if(session&&session.user) return onUser(session.user);
+    if(!navigator.onLine){ status('offline — ఈ ఫోన్‌లో సేవ్ అవుతోంది'); return; }
+    // 1st choice: no-login anonymous account per device
+    const {data,error}=await sb.auth.signInAnonymously();
+    if(!error&&data&&data.user) return onUser(data.user);
+    showLogin('login కాలేదు — ఈ ఫోన్‌లో మాత్రమే సేవ్ అవుతోంది');
+  }
+  $('lgSend').onclick=async()=>{ const em=$('lgEmail').value.trim(); if(!sb||!em) return; status('code పంపుతున్నాను…');
+    const {error}=await sb.auth.signInWithOtp({email:em,options:{shouldCreateUser:true,emailRedirectTo:location.href.split('#')[0]}});
+    if(error) return status('⚠️ email పంపలేకపోయాను ('+error.message+')'); $('lgCodeRow').classList.remove('hide'); status('📧 email చూడండి — code టైప్ చేయండి లేదా link నొక్కండి'); };
+  $('lgVerify').onclick=async()=>{ const em=$('lgEmail').value.trim(), code=$('lgCode').value.trim(); if(!sb||!em||!code) return;
+    const {data,error}=await sb.auth.verifyOtp({email:em,token:code,type:'email'}); if(error) return status('⚠️ code తప్పు/గడువు ముగిసింది ('+error.message+')'); if(data.user) onUser(data.user); };
+  window.addEventListener('online',()=>{ if(!sb) init(); else if(!user) init(); else flush().then(pull).catch(()=>{}); });
+  window.addEventListener('offline',()=>status('offline — ఫోన్‌లో సేవ్ అవుతోంది'));
+  return {init,flush,markDeleted,status};
+})();
+renderTracker();
+CloudSync.init().catch(e=>CloudSync.status('⚠️ '+(e.message||e)));
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>
